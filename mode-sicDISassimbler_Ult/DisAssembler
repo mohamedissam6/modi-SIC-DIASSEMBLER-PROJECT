@@ -1,0 +1,552 @@
+import math
+
+dict = {'ADD': '', 'Age': 7, 'Class': 'First'}
+
+Instruction_Array = ["ADD","AND","COMP","DIV","J","JEQ","JGT",
+                    "JLT","JSUB","LDA","LDCH","LDL","LDX","MUL",
+                    "OR","RD","RSUB","STA","STCH","STL","STSW",
+                    "STX","SUB","TD","TIX","WD","FIX","FLOAT",
+                    "HIO","NORM","SIO","TIO"]
+
+Format_One_Opcode = ["C4","C0","F4","C8","F0","F8"]
+Format_Three_Opcode = ["18","40","28","24","3C","30","34","38","48",
+                     "00","50","08","04","20","44","D8","4C","0C",
+                     "54","14","E8","10","1C","E0","2C","DC"]
+INSTR_WRD_REF=["18","40","28","24","00","08","04","20","44","2C"]
+INSTR_BT_REF=["DC","D8","E0"]
+INSTR_RB_REF=["54","50"]
+INSTR_RW_REF=["0C","14","E8","10"]
+INSTR_J_REF=["3C","30","34","38","48"]
+
+INSTR_OPCODE = {
+   "18":"ADD","40":"AND","28":"COMP","24":"DIV","3C":"J","30":"JEQ",
+    "34":"JGT","38":"JLT" ,"48":"JSUB","00":"LDA","50":"LDCH","08":"LDL",
+   "04":"LDX","20":"MUL","44":"OR","D8":"RD","4C":"RSUB","0C":"STA",
+   "54":"STCH","14":"STL","E8":"STSW","10":"STX","1c":"SUB",
+   "E0":"TD","2C":"TIX","DC":"WD","C4":"FIX","C0":"FLOAT","F4":"HIO",
+   "C8":"NORM","F0":"SIO","F8":"TIO"
+}
+
+
+Reference=[]
+Reference_Word=[]
+Reference_Byte=[]
+Reference_RW=[]
+Reference_RB=[]
+Reference_J=[]
+
+def h2b(x):
+   return( bin(int(x, 16))[2:].zfill(24))
+
+def h2b2(x):
+   return( bin(int(x, 16))[2:].zfill(8))
+
+def h2b4(x):
+   return( bin(int(x, 16))[2:].zfill(16))
+
+def h2d(x):
+   return(int(x,16))
+
+def b2h(x):
+   decimal_number = int(x, 2)
+   hex_number = hex(decimal_number)[2:]
+   return(hex_number)
+
+Program_Name=""
+Starting_Address=""
+Ending_Address=""
+Program_Length=""
+Starting_Address_Per_Record=""
+Size_Of_Instructions_Per_Record=""
+Number_Of_Characters_Per_Record=0
+Temp_Object_Code=""
+object_Codes=[]
+Line_Start=[]
+TEMPORARY=""
+i=0
+Loop_Counter=0
+
+file = open("input", "r")
+#reading program details
+current_character = file.read(1)
+if(current_character=="H"):
+    Program_Name=file.read(6)
+    Starting_Address=file.read(6)
+    Program_Length=file.read(6)
+    Ending_Address=h2d(Starting_Address)+h2d(Program_Length)
+    Ending_Address=hex(Ending_Address)[2:].zfill(6)
+    file.read(1)
+    current_character=file.read(1)
+    i=0
+else:
+   print("err mising H record")
+   file.close()
+#storing opcodes
+# while(current_character!="E"):
+
+#     Starting_Address_Per_Record=file.read(6)
+#     Size_Of_Instructions_Per_Record=file.read(2)
+#     print(Size_Of_Instructions_Per_Record)
+#     Number_Of_Characters_Per_Record=(h2d(Size_Of_Instructions_Per_Record)*2)
+#     print(Number_Of_Characters_Per_Record)
+#     i = 0
+#     io1=''
+#     while ( i < Number_Of_Characters_Per_Record):
+#         print(i)
+#         TEMPORARY=file.read(2)
+#         i+=2
+#         peek=file.read(1)
+#         file.seek(file.tell()-1)
+
+        
+#         if(h2b2(TEMPORARY)[7]=="1"):
+#             io1=hex(h2d(TEMPORARY)-1)[2:].zfill(2)
+#         else:
+#             io1=TEMPORARY
+        
+#         if(io1 in Format_One_Opcode):
+#             print("flag")
+#             object_Codes.append(TEMPORARY)
+#         elif(io1 in Format_Three_Opcode and peek != "\n" ):
+#             object_Codes.append(TEMPORARY + file.read(4))
+#             i+=4
+#         else:
+#             #BYTE OR WORD VALUE
+#             print("flag2"+TEMPORARY)
+#             object_Codes.append(TEMPORARY)
+#     file.read(1)#moving cursor
+#     current_character=file.read(1)
+# file.close()
+
+# Location_Counter=int(Starting_Address,16)
+
+# R=0
+# T_Ref=""
+
+# for COUNTER in object_Codes:
+#     io="0"
+#     flag=""
+#     P_flag=0
+#     if(h2b2(COUNTER[0:2])[7]=="1"):
+#         io=hex(h2d(COUNTER[0:2])-1)[2:].zfill(2)
+#     else:
+#         io=COUNTER[0:2]
+    
+#     if io in Format_Three_Opcode and len(COUNTER)==6 :
+
+#         if((h2b4(COUNTER[2:6])[0])=="1"):
+#             mtndf=h2d(COUNTER[2:6])-pow(2,15)
+#             T_Ref= (hex(mtndf)[2:].zfill(4)).lower()
+            
+#         else:
+#             mtndf=h2d(COUNTER[2:6])
+#             T_Ref= (hex(mtndf)[2:].zfill(4)).lower()
+
+#         if(  io in INSTR_WRD_REF):
+#             flag="W"
+#             if (T_Ref not in Reference_Word):
+#                 Reference_Word.append(T_Ref)
+#         elif(io in INSTR_BT_REF):
+#             flag="B"
+#             if (T_Ref not in Reference_Byte):
+#                  Reference_Byte.append(T_Ref)
+#         elif(io in INSTR_RB_REF):
+#             flag="RB"
+#             if (T_Ref not in Reference_RB):
+#                 Reference_RB.append(T_Ref)
+#         elif(io in INSTR_RW_REF):
+#             flag="RW"
+#             if (T_Ref not in Reference_RW):
+#                 Reference_RW.append(T_Ref)
+#         elif(io in INSTR_J_REF):
+#             flag='J'
+#             if(T_Ref not in Reference_J):
+#                 Reference_J.append(T_Ref)
+
+
+
+#     #HANDLING WORD ,BYTE ERROR REF
+#     print("loc"+hex(Location_Counter)[2:].zfill(4))
+#     if(hex(Location_Counter)[2:].zfill(4) in Reference_Word and COUNTER[2:6] in Reference_Word ):
+#         INDEX=Reference_Word.index(COUNTER[2:6])
+#         del Reference_Word[INDEX]
+        
+#     elif(hex(Location_Counter)[2:].zfill(4) in Reference_Byte and len(COUNTER)==6 and COUNTER[2:6] in Reference_Byte ):
+#         INDEX=Reference_Byte.index(COUNTER[2:6])
+#         del Reference_Byte[INDEX]
+
+
+#     Location_Counter+=int(len(COUNTER)/2)
+
+#filling Reservings
+INfile= open("input","r")
+INfile.readline()
+current_character=INfile.read(1)
+while(current_character=='T'):
+    Location_Counter2=h2d(INfile.read(6))
+    numofins=INfile.read(2)
+    numofchar=h2d(numofins)*2
+    x=0
+    while(x<numofchar):
+        print(hex(Location_Counter2)[2:].zfill(4))
+        ty=INfile.read(2)
+        x+=2
+
+        if(h2b2(ty)[7]=="1"):
+            io=hex(h2d(ty)-1)[2:].zfill(2)
+        else:
+            io=ty
+
+        
+        if(io in Format_Three_Opcode ):
+            des=INfile.read(4)
+            x+=4
+            if((h2b4(des)[0])=="1"):
+                mtndf=h2d(des)-pow(2,15)
+                T_Ref= (hex(mtndf)[2:].zfill(4)).lower()
+            
+            else:
+                mtndf=h2d(des)
+                T_Ref= (hex(mtndf)[2:].zfill(4)).lower()
+
+            if hex(Location_Counter2)[2:].zfill(4) not in Reference_Word:
+                
+                if io in INSTR_WRD_REF and T_Ref not in Reference_Word:
+                    Reference_Word.append(T_Ref)
+                elif io in INSTR_BT_REF and T_Ref not in Reference_Byte:
+                    Reference_Byte.append(T_Ref)
+                elif io in INSTR_RW_REF and T_Ref not in Reference_RW:
+                    Reference_RW.append(T_Ref)
+                elif io in INSTR_RB_REF and T_Ref not in Reference_RB:
+                    Reference_RB.append(T_Ref)
+                elif io in INSTR_J_REF and T_Ref not in Reference_J:
+                    Reference_J.append(T_Ref)
+            Location_Counter2+=3
+        else:
+            Location_Counter2+=1
+    INfile.read(1)
+    current_character=INfile.read(1)
+io=''
+INfile.close()
+
+Reference_Byte.sort()
+Reference_J.sort()
+Reference_RB.sort()
+Reference_Word.sort()
+Reference_RW.sort()
+print(Reference_Byte)
+print(Reference_J)
+print(Reference_RB)
+print(Reference_Word)
+print(Reference_RW)
+
+#starting Sympol taple
+file2=open("symboltable","w")
+#print(Reference_Byte)
+Referencesss=[]
+for i in Reference_Byte:
+    Referencesss.append(i)
+#print(Reference_Word)
+for i in Reference_Word:
+    Referencesss.append(i)
+#print(Reference_J)
+for i in Reference_J:
+    Referencesss.append(i)
+#print(Reference_RB)
+for i in Reference_RB:
+    Referencesss.append(i)
+#print(Reference_RW)
+for i in Reference_RW:
+    Referencesss.append(i)
+#print(Referencesss)
+#print(h2d(References).sort)
+
+References_Decimal=[]
+Referencesss.sort()
+print(Referencesss)
+for i in Referencesss:
+    #print(h2d(i))
+    References_Decimal.append(h2d(i))
+    #print("\n")
+print(References_Decimal)
+index=0
+file2.write("Address\t\t\t\t\t\tSymbol\n")
+#file.write("\n")
+SORTED_HEX=[]
+hex_array = [hex(num) for num in References_Decimal]
+print(hex_array)
+sorted_array = sorted(hex_array)
+for hex_num in sorted_array:
+    SORTED_HEX.append(hex_num[2:].zfill(4))
+print(SORTED_HEX)
+#print(SORTED_HEX)
+indexW=0
+indexB=0
+indexRW=0
+indexRB=0
+indexJ=0
+for i in Referencesss:
+    file2.write(i)
+    index=0
+    if(i in Reference_Word):
+        file2.write("\t\t\t\t\t\t")
+        file2.write("WORD_"+str(indexW))
+        indexW+=1
+    elif(i in Reference_Byte):
+        file2.write("\t\t\t\t\t\t")
+        file2.write("BYTE_"+str(indexB))
+        indexB+=1
+    elif(i in Reference_J):
+        file2.write("\t\t\t\t\t\t")
+        file2.write("JUMP_"+str(indexJ))
+        indexJ+=1
+    elif(i in Reference_RB):
+        file2.write("\t\t\t\t\t\t")
+        file2.write("RESBYTE_"+str(indexRB))
+        indexRB+=1
+    elif(i in Reference_RW):
+        file2.write("\t\t\t\t\t\t")
+        file2.write("RESWORD_"+str(indexRW))
+        indexRW+=1
+    
+
+
+    file2.write("\n")
+
+#file.write("\n\n")
+#file.write(Reference)
+
+
+file2.close()
+
+flag=""
+COUNTER=""
+#starting assemly handling
+
+INfile= open("input","r")
+file=open("Assembly","w")
+INfile.readline()#skipping H record
+
+Location_Counter=int(Starting_Address,16)
+file.write("Location_Counter\t\t\t\tSymbol\t\t\t\tInstruction\t\t\t\tReference\t\t\t\t\tOBJ CODE\n")
+file.write(Starting_Address[2:6]+"\t\t\t\t\t\t\t"+Program_Name+"\t\t\t\tStart\t\t\t\t\t"+Starting_Address[2:6]+"\n")
+R=0
+T_Ref=""
+P_flag=0
+i=0
+print(Location_Counter)
+print(hex(Location_Counter)[2:].zfill(4))
+current_character=INfile.read(1)
+while(current_character!= 'E' ):
+    Starting_Address_Per_Record=INfile.read(6)
+    print("START"+Starting_Address_Per_Record)
+    if (Location_Counter!=h2d(Starting_Address_Per_Record)):
+        file.write(hex(Location_Counter)[2:].zfill(4))
+        file.write("\t\t\t\t\t\t\t")
+
+
+        if(hex(Location_Counter)[2:].zfill(4) in Reference_RW):
+            BL=(h2d(Starting_Address_Per_Record)-Location_Counter)/3
+            BL=int(BL)
+            INDEX=Reference_RW.index(hex(Location_Counter)[2:].zfill(4))
+            file.write("RWRD_" + str(INDEX))
+            file.write("\t\t\t\tRESW\t\t\t\t\t"+str(BL)+"\n")
+            Location_Counter+=BL*3
+
+
+        elif(hex(Location_Counter)[2:].zfill(4) in Reference_RB):
+            BL=h2d(Starting_Address_Per_Record)-Location_Counter
+            BL=int(BL)
+            INDEX=Reference_RB.index(hex(Location_Counter)[2:].zfill(4))
+            file.write("RBYT_" + str(INDEX))
+            file.write("\t\t\t\tRESB\t\t\t\t"+str(BL)+"\n")
+            Location_Counter+=BL
+
+
+    # file.write(hex(Location_Counter)[2:].zfill(4))
+    # file.write("\t\t\t\t\t\t\t\t")
+    Size_Of_Instructions_Per_Record=INfile.read(2)
+    print(Size_Of_Instructions_Per_Record)
+    Number_Of_Characters_Per_Record=(h2d(Size_Of_Instructions_Per_Record)*2)
+    print(Number_Of_Characters_Per_Record)
+    
+    i=0
+    while(i<Number_Of_Characters_Per_Record):
+        FLGINDX=0
+        FLGIMM=0
+        file.write(hex(Location_Counter)[2:].zfill(4))
+        Instruction=''
+        op=INfile.read(2)
+        i+=2
+        if(h2b2(op)[7]=="1"):
+            io=hex(h2d(op)-1)[2:].zfill(2)
+            FLGIMM=1
+        else:
+            io=op
+        if(op in Format_One_Opcode):
+            COUNTER=op
+            if(hex(Location_Counter)[2:].zfill(4) in Reference_J):
+                INDEX=Reference_J.index(hex(Location_Counter)[2:].zfill(4))
+                file.write("JUMP_"+ str(INDEX))
+            file.write("\t\t\t\t")
+            file.write(INSTR_OPCODE[op])
+            file.write("\t\t\t\t\t"+ COUNTER)
+        
+        elif(io in Format_Three_Opcode):
+
+            if(hex(Location_Counter)[2:].zfill(4) in Reference_Byte):
+                INDEX=Reference_Byte.index(hex(Location_Counter)[2:].zfill(4))
+                file.write("\t\t\t\t\t\t\tBYTE_" + str(INDEX))
+                file.write("\t\t\t\tByte\t\t\t\t\tX'"+op+"'\t\t\t\t\t\t"+op)
+                COUNTER=op
+            else:
+                COUNTER=op+INfile.read(4)
+                i+=4
+
+                if((h2b4(COUNTER[2:6])[0])=="1"):
+                    FLGINDX=1
+                    mtndf=h2d(COUNTER[2:6])-pow(2,15)
+                    T_Ref= (hex(mtndf)[2:].zfill(4)).lower()
+            
+                else:
+                    mtndf=h2d(COUNTER[2:6])
+                    T_Ref= (hex(mtndf)[2:].zfill(4)).lower()
+
+                if(hex(Location_Counter)[2:].zfill(4) in Reference_Word):
+                    INDEX=Reference_Word.index(hex(Location_Counter)[2:].zfill(4))
+                    file.write("\t\t\t\t\t\t\tWORD_" + str(INDEX))
+                    file.write("\t\t\t\tWord\t\t\t\t\t"+str(h2d(COUNTER))+"\t\t\t\t\t\t\t"+COUNTER)
+                    #file.write("\n")
+
+                elif(io in INSTR_WRD_REF):
+                    if(hex(Location_Counter)[2:].zfill(4) in Reference_J):
+                        INDEX=Reference_J.index(hex(Location_Counter)[2:].zfill(4))
+                        file.write("\t\t\t\t\t\t\tJUMP_"+str(INDEX)+"\t\t\t\t")
+                    else:
+                        file.write("\t\t\t\t\t\t\t\t\t\t\t\t")
+                    file.write(INSTR_OPCODE[io]+"\t\t\t\t\t\t")
+                    INDEX=Reference_Word.index(T_Ref)
+                    if(FLGIMM==1):
+                        file.write("#")
+                    file.write("Word_"+str(INDEX))
+                    if(FLGINDX==1):
+                        file.write(",X")
+                    file.write("\t\t\t\t\t\t")
+                    file.write(COUNTER)
+
+                elif(io in INSTR_BT_REF):
+                    if(hex(Location_Counter)[2:].zfill(4) in Reference_J):
+                        INDEX=Reference_J.index(hex(Location_Counter)[2:].zfill(4))
+                        file.write("\t\t\t\t\t\t\tJUMP_"+str(INDEX)+"\t\t\t\t")
+                    else:
+                        file.write("\t\t\t\t\t\t\t\t\t\t\t\t")
+                    file.write(INSTR_OPCODE[io]+"\t\t\t\t\t\t")
+                    INDEX=Reference_Byte.index(T_Ref)
+                    if(FLGIMM==1):
+                        file.write("#")
+                    file.write("Byte_"+str(INDEX))
+                    if(FLGINDX==1):
+                        file.write(",X")
+                    file.write("\t\t\t\t\t\t")
+                    file.write(COUNTER)
+
+                elif(io in INSTR_RB_REF):
+                    if(hex(Location_Counter)[2:].zfill(4) in Reference_J):
+                        INDEX=Reference_J.index(hex(Location_Counter)[2:].zfill(4))
+                        file.write("\t\t\t\t\t\t\tJUMP_"+str(INDEX)+"\t\t\t\t")
+                    else:
+                        file.write("\t\t\t\t\t\t\t\t\t\t\t\t")
+                    file.write(INSTR_OPCODE[io]+"\t\t\t\t\t")
+                    INDEX=Reference_RB.index(T_Ref)
+                    if(FLGIMM==1):
+                        file.write("#")
+                    file.write("RESB_"+str(INDEX))
+                    if(FLGINDX==1):
+                        file.write(",X")
+                    file.write("\t\t\t\t\t\t")
+                    file.write(COUNTER)
+
+                elif(io in INSTR_RW_REF):
+                    if(hex(Location_Counter)[2:].zfill(4) in Reference_J):
+                        INDEX=Reference_J.index(hex(Location_Counter)[2:].zfill(4))
+                        file.write("\t\t\t\t\t\t\tJUMP_"+str(INDEX)+"\t\t\t\t")
+                    else:
+                        file.write("\t\t\t\t\t\t\t\t\t\t\t\t")
+                    file.write(INSTR_OPCODE[io]+"\t\t\t\t\t\t")
+                    INDEX=Reference_RW.index(T_Ref)
+                    if(FLGIMM==1):
+                        file.write("#")
+                    file.write("RESW_"+str(INDEX))
+                    if(FLGINDX==1):
+                        file.write(",X")
+                    file.write("\t\t\t\t\t\t")
+                    file.write(COUNTER)
+
+                elif(io in INSTR_J_REF):
+                    if(hex(Location_Counter)[2:].zfill(4) in Reference_J):
+                        INDEX=Reference_J.index(hex(Location_Counter)[2:].zfill(4))
+                        file.write("\t\t\t\t\t\t\tJUMP_"+str(INDEX)+"\t\t\t\t")
+                    else:
+                        file.write("\t\t\t\t\t\t\t\t\t\t\t\t")
+                    file.write(INSTR_OPCODE[io]+"\t\t\t\t\t\t")
+                    INDEX=Reference_J.index(T_Ref)
+                    if(FLGIMM==1):
+                        file.write("#")
+                    file.write("JUMP_"+str(INDEX))
+                    if(FLGINDX==1):
+                        file.write(",X")
+                    file.write("\t\t\t\t\t\t")
+                    file.write(COUNTER)
+        else:
+            if(hex(Location_Counter)[2:].zfill(4) in Reference_Byte):
+                INDEX=Reference_Byte.index(hex(Location_Counter)[2:].zfill(4))
+                file.write("\t\t\t\t\t\t\tBYTE_" + str(INDEX))
+                file.write("\t\t\t\tByte\t\t\t\t\tX'"+COUNTER+"'\t\t\t\t\t\t"+COUNTER)
+            elif(hex(Location_Counter)[2:].zfill(4) in Reference_Word):
+                COUNTER=op+INfile.read(4)
+                i+=4
+                INDEX=Reference_Word.index(hex(Location_Counter)[2:].zfill(4))
+                file.write("\t\t\t\t\t\t\tWORD_" + str(INDEX))
+                file.write("\t\t\t\tWord\t\t\t\t\t"+str(h2d(COUNTER))+"\t\t\t\t\t\t\t"+COUNTER)
+        print("COUNT"+COUNTER)
+        file.write("\n")
+        Location_Counter+=int(len(COUNTER)/2)
+    INfile.read(1)
+    current_character=INfile.read(1)
+    print(current_character)
+
+while (Location_Counter!=h2d(Ending_Address)):
+    file.write(hex(Location_Counter)[2:].zfill(4)+"\t\t\t\t")
+    if(hex(Location_Counter)[2:].zfill(4) in Reference_RB):
+        BL=h2d(Ending_Address)-Location_Counter
+        INDEX=Reference_RB.index(hex(Location_Counter)[2:].zfill(4))
+        file.write("\t\t\tRBYT_" + str(INDEX))
+        file.write("\t\t\t\tRESB\t\t\t\t\t"+str(BL)+"\n")
+        Location_Counter+=BL
+    elif(hex(Location_Counter)[2:].zfill(4) in Reference_RW and P_flag==0):
+        WL=(h2d(Ending_Address)-Location_Counter)/3
+        INDEX=Reference_RW.index(hex(Location_Counter)[2:].zfill(4))
+        file.write("\t\t\tRWRD_" + str(INDEX))
+        file.write("\t\t\t\tRESW\t\t\t\t\t"+str(WL)+"\n")
+
+#EDNING
+file.write(hex(Location_Counter)[2:].zfill(4)+"\t\t\t\t\t\t\tEnd\t\t\t\t\t"+Starting_Address[2:6])
+INfile.close()
+    
+
+
+
+
+
+                
+                
+
+
+
+
+
+           
+        
+
+
+

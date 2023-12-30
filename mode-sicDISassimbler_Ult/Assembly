@@ -1,0 +1,14 @@
+Location_Counter				Symbol				Instruction				Reference					OBJ CODE
+0030							HW1BXX				Start					0030
+0030												LDX						#Word_0,X						058045
+0033							JUMP_0				TD						Byte_0						E0004B
+0036												JEQ						JUMP_0						300033
+0039												LDCH					RESB_0,X						50804C
+003c												WD						Byte_0						DC004B
+003f												TIX						Word_1						2C0048
+0042												JLT						JUMP_0						380033
+0045							WORD_0				Word					0							000000
+0048							WORD_1				Word					1							000001
+004b							BYTE_0				Byte					X'05'						05
+004c							RBYT_0				RESB					100
+00b0							End					0030
